@@ -479,7 +479,23 @@ cat > $tempdir/${PROFILE_NAME}.json <<EOF
         }
     ],
     "exponent": 0,
-    "keyBits": 2048
+    "keyBits": 2048,
+    "session_hash_alg": "TPM2_ALG_SHA256",
+    "session_symmetric":{
+        "algorithm":"TPM2_ALG_AES",
+        "keyBits":"128",
+        "mode":"TPM2_ALG_CFB"
+    },
+    "ek_policy": {
+        "description": "Endorsement hierarchy used for policy secret.",
+        "policy":[
+            {
+                "type":"POLICYSECRET",
+                "objectName": "4000000b",
+            }
+        ]
+    }
+
 }
 EOF
 }
