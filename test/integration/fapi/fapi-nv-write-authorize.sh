@@ -5,6 +5,10 @@ source helpers.sh
 
 start_up
 
+if ! tpm2_getcap commands| grep TPM2_CC_PolicyAuthorizeNV; then
+   exit 77
+fi
+
 setup_fapi
 
 function cleanup {
