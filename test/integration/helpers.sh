@@ -314,9 +314,6 @@ function start_up() {
         tpm2_startup -c
     fi
 
-    if ! tpm2_clear; then
-        exit 1
-    fi
 }
 
 function shut_down() {
