@@ -186,7 +186,7 @@ static unsigned char *hash_ek_public(void) {
             buf[3] = (BYTE)exp;
             buf[2] = (BYTE)(exp>>=8);
             buf[1] = (BYTE)(exp>>=8);
-            buf[0] = (BYTE)(exp>>=8);
+            buf[0] = (BYTE)(exp>>8);
             is_success = EVP_DigestUpdate(sha256, buf, sizeof(buf));
             if (!is_success) {
                 LOG_ERR("EVP_DigestUpdate failed");
@@ -657,7 +657,7 @@ static tool_rc nv_read(ESYS_CONTEXT *ectx, TPMI_RH_NV_INDEX nv_index) {
 
     TPM2B_DIGEST cp_hash = { 0 };
     TPM2B_DIGEST rp_hash = { 0 };
-    uint16_t nv_buf_size;
+    uint16_t nv_buf_size = 0;
     rc = is_rsa ?
          tpm2_util_nv_read(ectx, nv_index, 0, 0, &object, &ctx.rsa_cert_buffer,
             &nv_buf_size, &cp_hash, &rp_hash, TPM2_ALG_SHA256, 0,
@@ -834,6 +834,7 @@ static tool_rc process_output(void) {
      * If so set the flag.
      */
     bool is_intel_cert = ctx.manufacturer == VENDOR_INTEL;
+
     if (!is_intel_cert && ctx.rsa_cert_buffer) {
         is_intel_cert = !(strncmp((const char *)ctx.rsa_cert_buffer,
             "{\"pubhash", strlen("{\"pubhash")));
@@ -847,7 +848,7 @@ static tool_rc process_output(void) {
     /*
      * Intel EK certificates on the NV-index are already in standard DER format.
      */
-    if (is_intel_cert && !ctx.is_cert_on_nv) {
+    if (is_intel_cert && ctx.is_cert_on_nv) {
         ctx.is_cert_raw = true;
     }
 
