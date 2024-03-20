@@ -20,7 +20,11 @@ fi
 # If it's clang, enable asan
 if [[ "$CC" == clang* ]]; then
   echo "Detecting clang, enable asan"
-  export CFLAGS="-O1 -g -fsanitize=address -fno-omit-frame-pointer"
+  if echo $DOCKER_IMAGE | grep ubuntu > /dev/null; then
+      export CFLAGS="-O1 -g"
+  else
+      export CFLAGS="-O1 -g -fsanitize=address -fno-omit-frame-pointer"
+  fi
   echo "Exported CFLAGS=$CFLAGS"
   config_flags="--disable-hardening"
   echo "Disabled configure option hardening"
