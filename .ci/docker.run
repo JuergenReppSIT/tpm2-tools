@@ -7,6 +7,11 @@ git config --global --add safe.directory "$DOCKER_BUILD_DIR"
 
 source $DOCKER_BUILD_DIR/.ci/docker-prelude.sh
 
+# Prefer pkg-config metadata installed under /usr/local by extending
+# PKG_CONFIG_PATH. This ensures that CI uses the freshly built tpm2-tss
+# libraries instead of an older distribution-provided installation.
+export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+
 if [ -d build ]; then
   rm -rf build
 fi
@@ -86,7 +91,7 @@ fi
 
 ../configure --enable-unit $config_flags
 make -j$(nproc)
-make -j check
+make -j check 
 
 popd
 

@@ -82,10 +82,24 @@ AC_CHECK_LIB(crypto, [EVP_sm3], [
 AC_CHECK_LIB(crypto, [EVP_sm4_cfb128], [
         AC_DEFINE([HAVE_EVP_SM4_CFB], [1], [Support EVP_sm4_cfb in openssl])],
         [])
-AC_CHECK_LIB(tss2-fapi, [Fapi_DigestAndSign], [
-        AC_DEFINE([HAVE_FAPI_DIGEST_AND_SIGN], [1], [Support signing with restricted keys])],
-        [])
-LIBS="${LIBS_save}"
+save_CPPFLAGS="$CPPFLAGS"
+save_LIBS="$LIBS"
+
+save_LIBS="$LIBS"
+
+LIBS="$TSS2_FAPI_LIBS $LIBS"
+
+AC_CHECK_FUNC(
+    [Fapi_DigestAndSign],
+    [AC_DEFINE(
+        [HAVE_FAPI_DIGEST_AND_SIGN],
+        [1],
+        [Define if Fapi_DigestAndSign is available]
+    )]
+)
+
+LIBS="$save_LIBS"
+
 PKG_CHECK_MODULES([CURL], [libcurl])
 
 # pretty print of devicepath if efivar library is present

@@ -337,19 +337,23 @@ dd if=/dev/zero of=$DATA_FILE bs=1 count=1024
 if [ "$CRYPTO_PROFILE" = "RSA" ]; then
     PADDING="--padding=RSA_PSS"
 fi
-if nm -D $(ldconfig -p | grep "libtss2-fapi" | head -n1 | awk '{print $NF}') | \
-        grep "Fapi_DigestAndSign";
+
+if printf '%s\n' \
+    'extern void Fapi_DigestAndSign(void);' \
+    'int main(void) { Fapi_DigestAndSign(); return 0; }' |
+   "${CC:-cc}" -x c - -L/usr/local/lib -ltss2-fapi -o /tmp/check-fapi
 then
     tss2 sign --data=$DATA_FILE --keyPath=$KEY_PATH $PADDING \
          --signature=$SIGNATURE_FILE --publicKey=$PUBLIC_KEY_FILE -f
-
-    shasum -a 256 $DATA_FILE | awk '{ $1 }' | xxd -r -p > $DIGEST_FILE
+    shasum -a 256 $DATA_FILE | awk '{ print $1 }' | xxd -r -p > $DIGEST_FILE
     tss2 verifysignature --keyPath=$PUB_KEY_DIR/$IMPORTED_KEY_NAME \
          --digest=$DIGEST_FILE --signature=$SIGNATURE_FILE
 else
     # The sign should fail because Fapi_DigestAndSign is not available
-    ! tss2 sign --data=$DATA_FILE --keyPath=$KEY_PATH $PADDING \
-      --signature=$SIGNATURE_FILE --publicKey=$PUBLIC_KEY_FILE
+    if tss2 sign --data=$DATA_FILE --keyPath=$KEY_PATH $PADDING \
+            --signature=$SIGNATURE_FILE --publicKey=$PUBLIC_KEY_FILE ; then
+        echo "ERROR: tss2_sign unexpectedly succeeded"
+        exit 1;
+    fi
 fi
-
 exit 0
